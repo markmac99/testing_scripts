@@ -3,7 +3,11 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source <(grep = $here/../pwsh/testing.ini | sed 's/ *= */=/g')
 
-source <(grep = ./ukmondata.ini | sed 's/ *= */=/g')
+[ "$1" == "" ] && inif="./newdata.ini" || inif=$1
+if [ ! -f "${inif}" ] ; then echo "config file $inif not found" ; exit ; fi
+
+echo "reading from $inif"
+source <(grep = ${inif} | sed 's/ *= */=/g')
 echo "Date list is $DATERANGE"
 echo "Station list is $STATLIST"
 
