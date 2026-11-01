@@ -8,9 +8,9 @@ if [ ! -f "${inif}" ] ; then echo "config file $inif not found" ; exit ; fi
 
 echo "reading from $inif"
 source <(grep = ${inif} | sed 's/ *= */=/g')
+[ "$2" != "" ] && DATERANGE=$2
 echo "Date list is $DATERANGE"
 echo "Station list is $STATLIST"
-sleep 30
 
 testdir=$(echo $TESTDIR  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
 wmpltest=$(echo $WMPL_TEST  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
