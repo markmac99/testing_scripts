@@ -18,5 +18,4 @@ export PYTHONPATH=${wmplloc}
 
 [ "$1" == "" ] && TR="(20260917-120000,20260924-120000)" || TR="$1"
 echo $TR
-sleep 30
 python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 5 --cpucores 4 --addlogsuffix --logdir $OUTDIR/logs -r "${TR}" --dbdir $OUTDIR --outdir $OUTDIR
