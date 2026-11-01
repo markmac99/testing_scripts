@@ -1,36 +1,35 @@
 #!/bin/bash
 # simple script to run the correlator
-
-# This script expects you to have a miniconda environment named "wmpl"
-
-wmplenv="wmpl"
-
-source ~/.bashrc
-. ~/miniconda3/etc/profile.d/conda.sh
-eval "$(/home/mark/miniconda3/bin/conda shell.bash hook)"
-source $CONDA_PREFIX/bin/activate ${wmplenv}
-
-shareddata=$HOME/test/wmpl/shareddata
-outdir=$HOME/test/wmpl/master
-
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-cd $outdir
+source <(grep = $here/../pwsh/testing.ini | sed 's/ *= */=/g')
 
+testdir=$(echo $TESTDIR  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
+wmpltest=$(echo $WMPL_TEST  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
+wmplenv=$(echo $WMPL_ENV  | tr -d "\n\r")
+wmplloc=$(echo $WMPL_LOC  | tr -d "\n\r" | sed 's|c:|/mnt/c|g')
 
-export PYTHONPATH=$HOME/src/wmpl_master
-echo $CONDA_EXE $CONDA_DEFAULT_ENV
+DATADIR=${testdir}/${wmpltest}/shareddata/
+
+[ "$1" == "" ] && curdir=master || curdir=$1
+OUTDIR=${testdir}/${wmpltest}/${curdir}
+if [ ! -d $OUTDIR ] ; then echo $curdir doesnt exist ; exit ; fi
+
+cd $OUTDIR
+. ~/miniconda3/etc/profile.d/conda.sh
+conda activate ${wmplenv}
+export PYTHONPATH=${wmplloc}
 
 echo "removing old solutions"
-rm -Rf $outdir/*.db
-rm -Rf $outdir/trajectories
-rm -Rf $outdir/phase1
-rm -Rf $outdir/candidates
+rm -Rf $OUTDIR/*.db
+rm -Rf $OUTDIR/trajectories
+rm -Rf $OUTDIR/phase1
+rm -Rf $OUTDIR/candidates
 
 which python
 python -V
 
 echo "setting up initial data set"
-cd $shareddata
+cd $DATADIR
 mv UK004A/UK004A_20260712_210000_000000  UK004A/ign_UK004A_20260712_210000_000000
 mv UK008V/UK008V_20260712_210000_000000  UK008V/ign_UK008V_20260712_210000_000000
 mv UK0090/UK0090_20260712_210000_000000  UK0090/ign_UK0090_20260712_210000_000000
@@ -66,16 +65,16 @@ mv UK0090/UK0090_20260715_210000_000000  UK0090/ign_UK0090_20260715_210000_00000
 mv UK009M/UK009M_20260715_210000_000000  UK009M/ign_UK009M_20260715_210000_000000
 mv UK00A4/UK00A4_20260715_210000_000000  UK00A4/ign_UK00A4_20260715_210000_000000
 mv UK00AN/UK00AN_20260715_210000_000000  UK00AN/ign_UK00AN_20260715_210000_000000
-cd $outdir
+cd $OUTDIR
 
 echo "running RMS candidate finder"
-python -m wmpl.Trajectory.CorrelateRMS $shareddata --mcmode 4 --outdir $outdir --dbdir $outdir --cpucores 4 --addlogsuffix -a 120  --autofreq 5 --logdir $outdir/logs --addlogsuffix > $outdir/logs/cands.log 2>&1 &
+python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 4 --outdir $OUTDIR --dbdir $OUTDIR --cpucores 4 --addlogsuffix -a 120  --autofreq 5 --logdir $OUTDIR/logs --addlogsuffix > $OUTDIR/logs/cands.log 2>&1 &
 sleep 10
 
 echo "running phase1 solver"
-python -m wmpl.Trajectory.CorrelateRMS $shareddata --mcmode 1 --outdir $outdir --dbdir $outdir --cpucores 4 --addlogsuffix -a 20  --autofreq 5 --logdir $outdir/logs --addlogsuffix > $outdir/logs/simple.log 2>&1 &
+python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 1 --outdir $OUTDIR --dbdir $OUTDIR --cpucores 4 --addlogsuffix -a 20  --autofreq 5 --logdir $OUTDIR/logs --addlogsuffix > $OUTDIR/logs/simple.log 2>&1 &
 
-cd $shareddata
+cd $DATADIR
 echo "sleeping"
 sleep 5m
 echo "adding data"

@@ -1,13 +1,23 @@
 #!/bin/bash
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source <(grep = $here/../pwsh/testing.ini | sed 's/ *= */=/g')
+
+testdir=$(echo $TESTDIR  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
+wmpltest=$(echo $WMPL_TEST  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
+wmplenv=$(echo $WMPL_ENV  | tr -d "\n\r")
+wmplloc=$(echo $WMPL_LOC  | tr -d "\n\r" | sed 's|c:|/mnt/c|g')
+
+DATADIR=${testdir}/${wmpltest}/shareddata/
+
+[ "$2" == "" ] && curdir=master || curdir=$2
+OUTDIR=${testdir}/${wmpltest}/${curdir}
+if [ ! -d $OUTDIR ] ; then echo $curdir doesnt exist ; exit ; fi
+
+cd $OUTDIR
 . ~/miniconda3/etc/profile.d/conda.sh
+conda activate ${wmplenv}
+export PYTHONPATH=${wmplloc}
 
-DATADIR=$HOME/test/wmpl/master/
-
-pushd $DATADIR
-conda activate wmpl
-export PYTHONPATH=$HOME/src/wmpl_master/
-
-TR="(20260917-120000,20260924-120000)"
-python -m wmpl.Trajectory.CorrelateRMS data --cpucores 4 --addlogsuffix --logdir $DATADIR/singlepass -r "${TR}" --dbdir $DATADIR --outdir $DATADIR
+[ "$1" == "" ] && TR="(20260917-120000,20260924-120000)" || TR="$1"
+python -m wmpl.Trajectory.CorrelateRMS $DATADIR --cpucores 4 --addlogsuffix --logdir $DATADIR/logs -r "${TR}" --dbdir $DATADIR --outdir $DATADIR

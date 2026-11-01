@@ -9,7 +9,10 @@ wmplenv=$(echo $WMPL_ENV  | tr -d "\n\r")
 wmplloc=$(echo $WMPL_LOC  | tr -d "\n\r" | sed 's|c:|/mnt/c|g')
 
 DATADIR=${testdir}/${wmpltest}/shareddata/
-OUTDIR=${testdir}/${wmpltest}/master
+
+[ "$2" == "" ] && curdir=master || curdir=$2
+OUTDIR=${testdir}/${wmpltest}/${curdir}
+if [ ! -d $OUTDIR ] ; then echo $curdir doesnt exist ; exit ; fi
 
 cd $OUTDIR
 . ~/miniconda3/etc/profile.d/conda.sh
@@ -17,5 +20,4 @@ conda activate ${wmplenv}
 export PYTHONPATH=${wmplloc}
 
 [ "$1" == "" ] && TR="(20260917-120000,20260924-120000)" || TR="$1"
-echo $TR
 python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 5 --cpucores 4 --addlogsuffix --logdir $OUTDIR/logs -r "${TR}" --dbdir $OUTDIR --outdir $OUTDIR

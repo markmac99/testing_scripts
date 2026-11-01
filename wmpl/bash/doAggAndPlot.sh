@@ -6,15 +6,18 @@ testdir=$(echo $TESTDIR  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
 wmpltest=$(echo $WMPL_TEST  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
 wmplenv=$(echo $WMPL_ENV  | tr -d "\n\r")
 wmplloc=$(echo $WMPL_LOC  | tr -d "\n\r" | sed 's|c:|/mnt/c|g')
-datadir=${testdir}/${wmpltest}/newdata
 
-source ~/.bashrc
-eval "$(conda shell.bash hook)"
-source ~/miniconda3/bin/activate ${wmplenv}
+DATADIR=${testdir}/${wmpltest}/shareddata/
 
+[ "$1" == "" ] && curdir=master || curdir=$1
+OUTDIR=${testdir}/${wmpltest}/${curdir}
+if [ ! -d $OUTDIR ] ; then echo $curdir doesnt exist ; exit ; fi
+
+cd $OUTDIR
+. ~/miniconda3/etc/profile.d/conda.sh
+conda activate ${wmplenv}
 export PYTHONPATH=${wmplloc}
 
-echo "generating report, pythonpath is $PYTHONPATH"
 python -m wmpl.Trajectory.AggregateAndPlot ./trajectories --output ./plots --skipplots
 
 echo "done"
