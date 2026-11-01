@@ -16,6 +16,7 @@ testdir=$(echo $TESTDIR  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
 wmpltest=$(echo $WMPL_TEST  | tr -d "\n\r" | sed 's|e:|/mnt/e|g')
 datadir=${testdir}/${wmpltest}/newdata
 
+mkdir -p $datadir
 pushd $datadir
 
 for dt in $DATERANGE ; do
