@@ -34,6 +34,9 @@ echo "  phase1    " $(ls -1 $outdir/phase1/*.pickle | grep -v process | wc -l)
 echo "  processed " $(ls -1 $outdir/phase1/processed/  | wc -l)
 echo "  trajs     " $(find  $outdir/trajectories -name "*.pickle" -ls  | wc -l)
 echo ""
-grep Saved $outdir/logs/*cands.log* | egrep -v "Saved 0"
+# grep Saved $outdir/logs/*cands.log* | egrep -v "Saved 0"
+grep "duplicate tra" $outdir/logs/corr*.log* 
+grep "nonexistent"   $outdir/logs/corr*.log* 
+
 echo ""
 ps -ef | grep Correlate | grep -v grep
