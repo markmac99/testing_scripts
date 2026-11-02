@@ -15,8 +15,8 @@ if [ ! -d $inidir ] ; then echo $curdir doesnt exist ; exit ; fi
 yest=$(date --date "2 days ago" +%Y%m%d)
 tod=$(date --date "1 days ago" +%Y%m%d)
 
-$here/getlatest.sh $inidir/newdata.ini $yest
-$here/getlatest.sh $inidir/newdata.ini $tod
+echo $here/getlatest.sh $inidir/newdata.ini $yest
+echo $here/getlatest.sh $inidir/newdata.ini $tod
 sleep 5m
 $here/getlatest.sh $inidir/part2.ini $yest
 $here/getlatest.sh $inidir/part2.ini $tod
