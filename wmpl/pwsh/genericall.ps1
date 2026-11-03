@@ -47,6 +47,6 @@ $datadir = "${testdir}/${wmpltest}/shareddata"
 
 $tr = ${args}[0]
 
-python -m wmpl.Trajectory.CorrelateRMS $datadir --mcmode 4 --cpucores 4 --timerange "${tr}" --logdir $targdir/logs --dbdir $targdir --outdir $targdir --archivemonths 0 --addlogsuffix
+python -m wmpl.Trajectory.CorrelateRMS $datadir --cpucores 4 --timerange "${tr}" --logdir $targdir/logs --dbdir $targdir --outdir $targdir --archivemonths 0 --addlogsuffix
 
 set-location $here
