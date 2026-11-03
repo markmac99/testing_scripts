@@ -12,41 +12,28 @@ datadir=${testdir}/${wmpltest}/newdata
 resdir=${testdir}/${wmpltest}/results
 mkdir -p $resdir
 cd $resdir
-tod=$(date +%Y%m%d)
+tod=$(date +%Y%m%d-%H$m)
 
 srcdir=${testdir}/${wmpltest}/master
 
 if [ ! -d $srcdir ] ; then
 	echo "sourcedir $srcdir not found"
 else
-	targdir=$resdir/${tod}/$1
+	targdir=$resdir/${tod}
 	mkdir -p $targdir
 
 	pushd $srcdir
-	python -m wmpl.Trajectory.AggregateAndPlot ./phase1 --skipplots --output $targdir
-
-	if [ -d candidates ] ; then
-		cd candidates
-		tar cvzf $targdir/candidates_$1.tgz *.pickle processed/*.pickle
-		ls -1 *.pickle > $targdir/candidates_$1.csv
-		ls -1 processed/*.pickle >> $targdir/candidates_$1.csv
-		cd ..
+	python -m wmpl.Trajectory.AggregateAndPlot ./trajectories --skipplots --output $targdir
+	if [ "$1" == "" ] ; then 
+		[ -d candidates ] && mv candidates $targdir
+		[ -d phase1 ] && mv phase1 $targdir
+		[ -d trajectories ] && mv trajectories $targdir
+		mv *.db $targdir
+	else
+		[ -d candidates ] && cp -pr candidates $targdir
+		[ -d phase1 ] && cp -pr phase1 $targdir
+		[ -d trajectories ] && cp -pr trajectories $targdir
+		cp -pr  *.db $targdir
+		cp -pr logs/* $targdir
 	fi 
-	if [ -d phase1 ] ; then
-		cd phase1
-		tar cvzf $targdir/phase1_$1.tgz *.pickle processed/*.pickle
-		ls -1 *.pickle > $targdir/phase1_$1.csv
-		ls -1 processed/*.pickle >> $targdir/phase1_$1.csv
-		cd ..
-	fi 
-	if [ -f trajectories.db ] ; then 
-		tar cvzf $targdir/databases_$1.tgz *.db
-	fi 
-	cd logs
-	tar cvzf $targdir/logs_$1.tgz *.log
-	cd ..
-	if [ -d trajectories ] ; then 
-		tar cvzf $targdir/trajectories_$1.tgz trajectories/*
-	fi
-	popd
 fi

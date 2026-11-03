@@ -33,6 +33,7 @@ if ($args[1] -eq "init")
     Push-Location $targdir
     if (test-path observations.db) {remove-item observations.db}
     if (test-path trajectories.db) {remove-item trajectories.db}
+    if (test-path candidates.db) {remove-item candidates.db}
     if (test-path processed_trajectories.json){remove-item processed_trajectories.json}
     if (test-path candidates) {remove-item -recurse candidates}
     if (test-path phase1) {remove-item -recurse phase1}
