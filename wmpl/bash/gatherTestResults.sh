@@ -14,6 +14,10 @@ mkdir -p $resdir
 cd $resdir
 tod=$(date +%Y%m%d-%H$m)
 
+. ~/miniconda3/etc/profile.d/conda.sh
+conda activate ${wmplenv}
+export PYTHONPATH=${wmplloc}
+
 srcdir=${testdir}/${wmpltest}/master
 
 if [ ! -d $srcdir ] ; then
