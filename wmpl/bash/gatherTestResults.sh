@@ -33,6 +33,7 @@ else
 		[ -d phase1 ] && mv phase1 $targdir
 		[ -d trajectories ] && mv trajectories $targdir
 		mv *.db $targdir
+		mv logs/*.db $targdir
 	else
 		[ -d candidates ] && cp -pr candidates $targdir
 		[ -d phase1 ] && cp -pr phase1 $targdir
@@ -40,4 +41,5 @@ else
 		cp -pr  *.db $targdir
 		cp -pr logs/* $targdir
 	fi 
+	popd
 fi
