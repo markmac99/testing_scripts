@@ -19,5 +19,5 @@ cd $OUTDIR
 conda activate ${wmplenv}
 export PYTHONPATH=${wmplloc}
 
-[ "$1" == "" ] && TR="(20260917-120000,20260924-120000)" || TR="$1"
+[ "$1" == "" ] && TR="(20261005-010757,20261104-120232)" || TR="$1"
 python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 5 --cpucores 4 --addlogsuffix --logdir $OUTDIR/logs -r "${TR}" --dbdir $OUTDIR --outdir $OUTDIR
