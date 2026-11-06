@@ -21,4 +21,4 @@ export PYTHONPATH=${wmplloc}
 
 [ "$1" == "" ] && TR="(20261005-010757,20261104-120232)" || TR="$1"
 
-python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 1 --cpucores 4 --addlogsuffix -r "${TR}" --logdir $OUTDIR/logs --dbdir $OUTDIR --outdir $OUTDIR
+python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 4 --cpucores 4 --addlogsuffix -r "${TR}" --logdir $OUTDIR/logs --dbdir $OUTDIR --outdir $OUTDIR
