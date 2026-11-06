@@ -19,4 +19,4 @@ cd $OUTDIR
 conda activate ${wmplenv}
 export PYTHONPATH=${wmplloc}
 
-python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 4 --cpucores 4 --addlogsuffix -a 30  --autofreq 5  --logdir $OUTDIR/logs --dbdir $OUTDIR --outdir $OUTDIR
+python -m wmpl.Trajectory.CorrelateRMS $DATADIR --mcmode 4 --cpucores 4 --addlogsuffix -a 33  --autofreq 5  --logdir $OUTDIR/logs --dbdir $OUTDIR --outdir $OUTDIR
