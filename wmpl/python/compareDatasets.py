@@ -64,9 +64,11 @@ def comparePhase1Folders(folder1, folder2, maxdiff=0.5):
                 c2extratr.append([tr for tr in trajlist2 if tr.cand_id == c2e][0])
             print('trajs in folder1 but not folder2, based on candidate ID')
             print('=======================================================')
-            print('\n'.join([x.traj_file_path for x in c1extratr]))
+            for tr in c1extratr:
+                print(f'{tr.traj_file_path} {tr.cand_id} {tr.obs_ids}')
             print('in folder2 but not folder1')
-            print('\n'.join([x.traj_file_path for x in c2extratr]))
+            for tr in c2extratr:
+                print(f'{tr.traj_file_path} {tr.cand_id} {tr.obs_ids}')
             print('\n\n')
         return 
     else:
