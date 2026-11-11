@@ -22,7 +22,7 @@ def loadTrajFromFolder(foldername):
         except Exception:
             print(f'unable to load {pick}')
         trajlist.append(tr)
-    trajlist.sort()
+    trajlist.sort(key=lambda tr: tr.jdt_ref)
     print(f'loaded {len(trajlist)} trajectories')
     return trajlist
 
