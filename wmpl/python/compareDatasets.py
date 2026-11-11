@@ -4,11 +4,138 @@ import pandas as pd
 import os
 import sys
 import datetime
+import argparse
 
 from wmpl.Utils.Pickling import loadPickle
 from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
 from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced
 from wmpl.Utils.TrajConversions import datetime2JD
+
+
+def loadTrajFromFolder(foldername):
+    print(f'loading {foldername}')
+    pickles = [ x for x in os.listdir(foldername) if '_trajectory.pickle' in x]
+    trajlist = []
+    for pick in pickles:
+        try:
+            tr = TrajectoryReduced(os.path.join(foldername, pick))
+        except Exception:
+            print(f'unable to load {pick}')
+        trajlist.append(tr)
+    print(f'loaded {len(trajlist)} trajectories')
+    return trajlist
+
+
+def comparePhase1Folders(folder1, folder2, maxdiff=0.5):
+    trajlist1 = loadTrajFromFolder(folder1)
+    trajlist2 = loadTrajFromFolder(folder2)
+
+    # trim the two lists to cover the same time window
+    jd1 = [x.jdt_ref for x in trajlist1]
+    jd2 = [x.jdt_ref for x in trajlist2]
+    min1 = max(min(jd1), min(jd2))
+    max1 = min(max(jd1), max(jd2))
+    newtr = []
+    for tr in trajlist1:
+        if tr.jdt_ref < min1 or tr.jdt_ref > max1:
+            continue
+        newtr.append(tr)
+    trajlist1 = newtr.copy()
+    newtr = []
+    for tr in trajlist2:
+        if tr.jdt_ref < min1 or tr.jdt_ref > max1:
+            continue
+        newtr.append(tr)
+    trajlist2 = newtr.copy()
+
+    # compare cand_ids, if present
+    if trajlist1[0].cand_id is not None and trajlist2[0].cand_id is not None:
+        cands1 = [x.cand_id for x in trajlist1 if x.cand_id]
+        cands2 = [x.cand_id for x in trajlist2 if x.cand_id]
+        if len(cands1) > 0 and len(cands2) > 0:
+            c1extra = [x for x in cands1 if x not in cands2]
+            c2extra = [x for x in cands2 if x not in cands1]
+            c1extratr = []
+            for c1e in c1extra:
+                c1extratr.append([tr for tr in trajlist1 if tr.cand_id == c1e][0])
+            c2extratr = []
+            for c2e in c2extra:
+                c2extratr.append([tr for tr in trajlist2 if tr.cand_id == c2e][0])
+            print('trajs in folder1 but not folder2, based on candidate ID')
+            print('=======================================================')
+            print('\n'.join([x.traj_file_path for x in c1extratr]))
+            print('in folder2 but not folder1')
+            print('\n'.join([x.traj_file_path for x in c2extratr]))
+            print('\n\n')
+        return 
+    else:
+        print('cant use cand_ids as not present in one folder')
+
+    # compare obs_ids, if present
+    if trajlist1[0].obs_ids is not None and trajlist2[0].obs_ids is not None:
+        obs1 = [x.obs_ids for x in trajlist1 if x.obs_ids]
+        obs2 = [x.obs_ids for x in trajlist2 if x.obs_ids]
+        if len(obs1) > 0 and len(obs2) > 0:
+            c1extra = [x for x in obs1 if x not in obs2]
+            c2extra = [x for x in obs2 if x not in obs1]
+            c1extratr = []
+            for c1e in c1extra:
+                c1extratr.append([tr for tr in trajlist1 if tr.obs_ids == c1e][0])
+            c2extratr = []
+            for c2e in c2extra:
+                c2extratr.append([tr for tr in trajlist2 if tr.obs_ids == c2e][0])
+            print('trajs in folder1 but not folder2, based on observations')
+            print('=======================================================')
+            print('\n'.join([x.traj_file_path for x in c1extratr]))
+            print('in folder2 but not folder1')
+            print('\n'.join([x.traj_file_path for x in c2extratr]))
+            print('\n\n')
+        return 
+    else:
+        print('cant use obs_ids as not present in one folder')
+
+    print('comparing by jdt_ref')
+    # compare jdt_ref, participating_stations and ignored_stations
+    # eliminate identical jdt_refs
+    jd1 = [x.jdt_ref for x in trajlist1]
+    jd2 = [x.jdt_ref for x in trajlist2]
+    flt1 = [x for x in jd1 if x not in jd2]
+    flt2 = [x for x in jd2 if x not in jd1]
+
+    def jdclose(jd1, jd2):
+        return True if abs((jd1-jd2)*86400) < maxdiff else False
+
+    bkptrajlist1 = trajlist1.copy()
+    bkptrajlist2 = trajlist2.copy()
+    print(f'comparing {folder2} to {folder1}, showing discrepancies:')
+    print('===================')
+    for tr in trajlist1:
+        matchtr = [x for x in trajlist2 if jdclose(x.jdt_ref, tr.jdt_ref)]
+        if len(matchtr)==1:
+            trajlist1.pop(trajlist1.index(tr))
+        elif len(matchtr) > 1:
+            print(f'{len(matchtr)} matches for {tr.traj_file_path} {tr.participating_stations}:')
+            print(f'{tr.obs_ids} {tr.ign_obs_ids}')
+            for tr2 in matchtr:
+                print(f'    {tr2.traj_file_path} {tr2.participating_stations} {tr2.obs_ids} {tr2.ign_obs_ids}')
+    trajlist1 = bkptrajlist1.copy()
+
+    print('\n\n===================')
+    print(f'comparing {folder1} to {folder2}, showing discrepancies:')
+    print('===================')
+    for tr in trajlist2:
+        matchtr = [x for x in trajlist1 if jdclose(x.jdt_ref, tr.jdt_ref)]
+        if len(matchtr)==1:
+            trajlist2.pop(trajlist2.index(tr))
+        elif len(matchtr) > 1:
+            print(f'{len(matchtr)} matches for {tr.traj_file_path} {tr.participating_stations}:')
+            print(f'{tr.obs_ids} {tr.ign_obs_ids}')
+            for tr2 in matchtr:
+                print(f'    {tr2.traj_file_path} {tr2.participating_stations} {tr2.obs_ids} {tr2.ign_obs_ids}')
+    trajlist2 = bkptrajlist2.copy()
+    print('===================')
+
+    return 
 
 
 def compareTrajDbs(srcdir, db1, db2, reqday, maxerr=1, numdays=1, outdir=None):
@@ -170,14 +297,20 @@ def getTrajDets(traj, new=True):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 3:
-        outdir = sys.argv[3]
+    arg_parser = argparse.ArgumentParser(description="Compare Trajectory datasets")
+    arg_parser.add_argument('action', type=str, metavar='ACTION', default='compare', help='Action to perform')
+    arg_parser.add_argument('folder1', type=str, metavar='FOLDER1',default=None, help='First folder')
+    arg_parser.add_argument('folder2', type=str, metavar='FOLDER2',default=None, help='Second folder')
+    arg_parser.add_argument('-o', '--outdir', type=str, metavar='OUTDIR', help='Output dir')
+    arg_parser.add_argument('-m', '--maxtimediff', type=int, metavar='MAXTIMEDIFF', help='max diff in JD to be considered a match')
+    cml_args = arg_parser.parse_args()
+
+    outdir = cml_args.outdir if cml_args.outdir else '.'
+    maxtimediff = int(cml_args.maxtimediff) if cml_args.maxtimediff else 0.5
+
+    if cml_args.action.lower() == 'compare':
+        comparePhase1Folders(cml_args.folder1, cml_args.folder2, maxdiff=maxtimediff)
     else:
-        outdir = '.'
-    if len(sys.argv) > 4:
-        maxerr = float(sys.argv[4])
-    else:
-        maxerr = 0.5
-    old, new, olddiffs, newdiffs = getDifferent(sys.argv[1], sys.argv[2], None, maxerr)
-    compareOldNewDiffs(sys.argv[1], sys.argv[2], old=olddiffs, new=newdiffs, outdir=outdir)
-    print(f'{old}, {new}, {len(olddiffs)}, {len(newdiffs)}')
+        old, new, olddiffs, newdiffs = getDifferent(sys.argv[1], sys.argv[2], None, maxtimediff)
+        compareOldNewDiffs(sys.argv[1], sys.argv[2], old=olddiffs, new=newdiffs, outdir=outdir)
+        print(f'{old}, {new}, {len(olddiffs)}, {len(newdiffs)}')
